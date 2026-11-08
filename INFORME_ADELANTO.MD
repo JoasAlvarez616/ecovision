@@ -50,15 +50,13 @@ Split: 70% train / 15% val / 15% test.
 
 ## 6. Resultados
 
-## 6. Resultados
-
 Métricas sobre el conjunto de test independiente (377 imágenes, nunca usadas
 en entrenamiento ni validación):
 
 - **Accuracy:** 0.86 (86%)
 - **Macro-F1:** 0.84
 
-Por clase:
+**Por clase:**
 
 | Clase | Precision | Recall | F1-score | Soporte |
 |---|---|---|---|---|
@@ -67,7 +65,7 @@ Por clase:
 | no_identificado | 0.79 | 0.74 | 0.76 | 95 |
 | papel_carton | 0.95 | 0.96 | 0.96 | 149 |
 
-Matriz de confusión (filas = real, columnas = predicho):
+**Matriz de confusión** (filas = real, columnas = predicho):
 
 |                | botella | lata | no_id | papel |
 |---|---|---|---|---|
@@ -76,16 +74,35 @@ Matriz de confusión (filas = real, columnas = predicho):
 | **no_id** (95)     | 9      | 10 | **70** | 6   |
 | **papel** (149)    | 1      | 4  | 1  | **143** |
 
-Análisis: papel/cartón es la clase mejor clasificada (F1=0.96).
-"No identificado" es la más difícil (F1=0.76) por su heterogeneidad:
-al remapear TrashNet agrupamos `glass` y `trash` en esta clase, y muchos
-vidrios tienen forma de botella, lo que genera confusión esperable.
+**Análisis de errores:**
+
+- **papel_carton** es la clase mejor clasificada (F1=0.96): visualmente
+  homogénea y distinguible.
+- **no_identificado** es la más débil (F1=0.76). Agrupa `glass` + `trash`
+  de TrashNet, dos categorías heterogéneas que incluyen botellas de vidrio
+  (confundibles con botella_plastica) y residuos diversos.
+- **botella_plastica** tiene el recall más bajo (0.79). En TrashNet, la
+  clase `plastic` agrupa botellas junto con bolsas y film transparente,
+  lo que introduce ruido en el etiquetado.
+
+**Limitación conocida:** estas confusiones reflejan el remapeo de un dataset
+preexistente, no el desempeño esperado con un dataset propio. En la semana 3
+se recolectan fotos específicas de los objetos del campus, lo que debería
+mejorar el recall de botella_plastica y la distinción botella/vidrio.
 
 ## 7. Separacion NN / logica
 
 MobileNetV2 recibe la imagen y devuelve 4 probabilidades. rules.py aplica un
 umbral de 0.60 (por debajo -> no_identificado) y mapea a contenedor segun
 Resolucion 2184 de 2019.
+
+**Bug detectado y corregido:** durante las pruebas del Plan B detectamos que
+el mapeo de índices de clase estaba intercambiado (2 = no_identificado,
+3 = papel_carton). El modelo predecía correctamente, pero la etiqueta mostrada
+era errónea. Corregido en una línea en `imshow.py` y `app.py`, validado con
+imágenes conocidas. Este incidente demuestra la importancia de separar la
+inferencia (red neuronal) de la presentación (mapeo lógico): los índices del
+modelo y las etiquetas de UI deben validarse independientemente.
 
 ## 8. Limitaciones actuales
 
