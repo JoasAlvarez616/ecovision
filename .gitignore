@@ -1,0 +1,8 @@
+venv/
+__pycache__/
+*.pyc
+raw_trashnet/
+dataset/
+model/*.keras
+.DS_Store
+*.log
